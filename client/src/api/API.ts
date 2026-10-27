@@ -10,13 +10,56 @@
  * ---------------------------------------------------------------
  */
 
+export interface Category {
+  /**
+   * @format int32
+   * @pattern ^-?(?:0|[1-9]\d*)$
+   */
+  id?: number | string;
+  name?: string;
+  productCategories?: ProductCategory[];
+}
+
 export interface CreateProductRequest {
-  name: string;
+  name?: string;
   /**
    * @format double
    * @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
    */
-  price: number | string;
+  price?: number | string;
+  description?: string;
+  categoryIds?: (number | string)[];
+}
+
+export interface Product {
+  /**
+   * @format int32
+   * @pattern ^-?(?:0|[1-9]\d*)$
+   */
+  id?: number | string;
+  name?: string;
+  /**
+   * @format double
+   * @pattern ^-?(?:0|[1-9]\d*)(?:\.\d+)?$
+   */
+  price?: number | string;
+  description?: string;
+  productCategories?: ProductCategory[];
+}
+
+export interface ProductCategory {
+  /**
+   * @format int32
+   * @pattern ^-?(?:0|[1-9]\d*)$
+   */
+  productId?: number | string;
+  /**
+   * @format int32
+   * @pattern ^-?(?:0|[1-9]\d*)$
+   */
+  categoryId?: number | string;
+  product?: null | Product;
+  category?: null | Category;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -286,14 +329,55 @@ export class Api<
     /**
      * No description
      *
+     * @tags Categories
+     * @name CategoriesList
+     * @request GET:/api/Categories
+     */
+    categoriesList: (params: RequestParams = {}) =>
+      this.request<Category[], any>({
+        path: `/api/Categories`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Categories
+     * @name CategoriesDetail
+     * @request GET:/api/Categories/{id}
+     */
+    categoriesDetail: (id: number | string, params: RequestParams = {}) =>
+      this.request<Category, any>({
+        path: `/api/Categories/${id}`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @tags Products
      * @name ProductsList
      * @request GET:/api/Products
      */
-    productsList: (params: RequestParams = {}) =>
-      this.request<void, any>({
+    productsList: (
+      query?: {
+        /**
+         * @format int32
+         * @pattern ^-?(?:0|[1-9]\d*)$
+         */
+        categoryId?: number | string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<Product[], any>({
         path: `/api/Products`,
         method: "GET",
+        query: query,
+        format: "json",
         ...params,
       }),
 
@@ -305,11 +389,27 @@ export class Api<
      * @request POST:/api/Products
      */
     productsCreate: (data: CreateProductRequest, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<Product, any>({
         path: `/api/Products`,
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Products
+     * @name ProductsDetail
+     * @request GET:/api/Products/{id}
+     */
+    productsDetail: (id: number | string, params: RequestParams = {}) =>
+      this.request<Product, any>({
+        path: `/api/Products/${id}`,
+        method: "GET",
+        format: "json",
         ...params,
       }),
   };
