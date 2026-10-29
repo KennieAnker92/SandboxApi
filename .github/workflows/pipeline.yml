@@ -1,0 +1,51 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "frontend-branch" ]
+
+jobs:
+  test-backend:
+    name: Run .NET xUnit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x' 
+          
+      - name: Restore dependencies
+        run: dotnet restore server/API/Infrastructure.csproj 
+        
+      - name: Build
+        run: dotnet build server/API/Infrastructure.csproj --no-restore
+        
+      - name: Test
+        run: dotnet test server/API/Infrastructure.csproj --no-build --verbosity normal
+
+  test-e2e:
+    name: Run Playwright E2E Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Install Playwright Browsers
+        run: bunx playwright install --with-deps
+
+      - name: Run Playwright Tests
+        run: bunx playwright test
