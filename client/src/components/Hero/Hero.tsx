@@ -14,7 +14,7 @@ export function Hero() {
       <div className="hero-sandbox-content">
         <span className="hero-sandbox-tag">SandboxApi</span>
         <h1 className="hero-sandbox-title">
-          Engineered for <br />Next-Gen Programming!!!!!.
+          Engineered for <br />Next-Gen Multi!!!!!.
         </h1>
         <p className="hero-sandbox-subtitle">
           Seamlessly connect your frontend to secure, high-performance data streams.
