@@ -8,7 +8,7 @@ on:
 
 jobs:
   test-backend:
-    name: Run .NET xUnit Tests
+    name: Run .NET Integration Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,33 +19,34 @@ jobs:
           dotnet-version: '8.0.x' 
           
       - name: Restore dependencies
-        run: dotnet restore server/API/Infrastructure.csproj 
+        # Restores the test project specifically
+        run: dotnet restore server/IntegrationTests/IntegrationTests.csproj 
         
-      - name: Build
-        run: dotnet build server/API/Infrastructure.csproj --no-restore
-        
-      - name: Test
-        run: dotnet test server/API/Infrastructure.csproj --no-build --verbosity normal
+      - name: Build and Test
+        # Builds and runs the tests in one go
+        run: dotnet test server/IntegrationTests/IntegrationTests.csproj --verbosity normal
 
   test-e2e:
     name: Run Playwright E2E Tests
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./client
+        # Pointing to your specific E2E folder
+        working-directory: ./tests/E2ETests
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+      # Using Node/npm since you have a package-lock.json in the E2ETests folder
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: '20'
 
       - name: Install Dependencies
-        run: bun install
+        run: npm ci
 
       - name: Install Playwright Browsers
-        run: bunx playwright install --with-deps
+        run: npx playwright install --with-deps
 
       - name: Run Playwright Tests
-        run: bunx playwright test
+        run: npx playwright test
