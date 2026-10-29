@@ -88,3 +88,19 @@ jobs:
       - name: Run Playwright Tests
         working-directory: ./tests/E2ETests
         run: npx playwright test
+
+  deploy:
+    name: Deploy to Fly.io
+    needs: [test-backend, test-e2e]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+        
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl deploy --remote-only
