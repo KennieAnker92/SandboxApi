@@ -1,11 +1,12 @@
-# fly.toml app configuration file generated for sandboxapi-crimson-shoreline-1952 on 2026-10-29T08:13:43+01:00
+# fly.toml app configuration file generated for sandboxapi on 2026-10-29T10:17:55+01:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'sandboxapi-crimson-shoreline-1952'
+app = 'sandboxapi'
 primary_region = 'ams'
 
+[build]
 [http_service]
   internal_port = 8080
   force_https = true
@@ -16,5 +17,6 @@ primary_region = 'ams'
 
 [[vm]]
   memory = '256mb'
+  cpu_kind = 'shared'
   cpus = 1
   memory_mb = 256
