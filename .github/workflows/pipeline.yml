@@ -26,27 +26,37 @@ jobs:
         # Builds and runs the tests in one go
         run: dotnet test server/IntegrationTests/IntegrationTests.csproj --verbosity normal
 
-  test-e2e:
+ test-e2e:
     name: Run Playwright E2E Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        # Pointing to your specific E2E folder
-        working-directory: ./tests/E2ETests
     steps:
       - uses: actions/checkout@v4
 
-      # Using Node/npm since you have a package-lock.json in the E2ETests folder
+      # 1. Install Bun (This fixes the 'bun: not found' error)
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+          
+      - name: Install Client Dependencies
+        working-directory: ./client
+        run: bun install
+
+      # 2. Install Node (Required for Playwright)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Install Dependencies
+          
+      - name: Install E2E Dependencies
+        working-directory: ./tests/E2ETests
         run: npm ci
 
+      # 3. Run the Tests
       - name: Install Playwright Browsers
+        working-directory: ./tests/E2ETests
         run: npx playwright install --with-deps
-
+        
       - name: Run Playwright Tests
+        working-directory: ./tests/E2ETests
         run: npx playwright test
