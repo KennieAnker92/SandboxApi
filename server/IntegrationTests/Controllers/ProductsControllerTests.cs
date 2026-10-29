@@ -20,7 +20,19 @@ public class ProductsControllerTests : IClassFixture<CustomWebApplicationFactory
     public async Task Post_And_Get_Products_ReturnsCreatedAndSuccess()
     {
         // Arrange
-        var request = new CreateProductRequest("Mechanical Keyboard", 799.00m);
+        var categoriesResponse = await _client.GetAsync("/api/categories");
+        categoriesResponse.EnsureSuccessStatusCode();
+        var categories = await categoriesResponse.Content.ReadFromJsonAsync<List<Category>>();
+        Assert.NotNull(categories);
+        var electronics = Assert.Single(categories, category => category.Name == "Electronics");
+
+        var request = new CreateProductRequest
+        {
+            Name = "Mechanical Keyboard",
+            Price = 799.00m,
+            Description = "A mechanical keyboard with tactile switches.",
+            CategoryIds = [electronics.Id]
+        };
 
         // Act: POST
         var postResponse = await _client.PostAsJsonAsync("/api/products", request);
@@ -28,12 +40,30 @@ public class ProductsControllerTests : IClassFixture<CustomWebApplicationFactory
 
         // Act: GET
         var getResponse = await _client.GetAsync("/api/products");
+        getResponse.EnsureSuccessStatusCode();
         var products = await getResponse.Content.ReadFromJsonAsync<List<Product>>();
 
         // Assert
         Assert.NotNull(products);
-        Assert.Single(products);
-        Assert.Equal("Mechanical Keyboard", products[0].Name);
+        var product = Assert.Single(products, product => product.Name == request.Name);
+        Assert.Equal(request.Description, product.Description);
+
+        var productCategory = Assert.Single(product.ProductCategories);
+        Assert.Equal(electronics.Id, productCategory.CategoryId);
+        Assert.Equal(electronics.Name, productCategory.Category?.Name);
+    }
+
+    [Fact]
+    public async Task Get_Categories_ReturnsSuccessAndCategories()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/categories");
+        var categories = await response.Content.ReadFromJsonAsync<List<Category>>();
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(categories);
+        Assert.Contains(categories, category => category.Name == "Electronics");
     }
 
     [Fact]
