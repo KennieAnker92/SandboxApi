@@ -1,0 +1,106 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  test-backend:
+    name: Run .NET Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x' 
+          
+      - name: Restore dependencies
+        # Restores the test project specifically
+        run: dotnet restore server/IntegrationTests/IntegrationTests.csproj 
+        
+      - name: Build and Test
+        # Builds and runs the tests in one go
+        run: dotnet test server/IntegrationTests/IntegrationTests.csproj --verbosity normal
+
+  test-e2e:
+    name: Run Playwright E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Setup Bun and Client
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+          
+      - name: Install Client Dependencies
+        working-directory: ./client
+        run: bun install
+
+      # 2. Setup Node and E2E
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './tests/E2ETests/package-lock.json'
+          
+      - name: Install E2E Dependencies
+        working-directory: ./tests/E2ETests
+        run: npm ci
+
+      # 3. Setup .NET and Boot the Backend
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Start .NET API (Background)
+        # The '&' at the end forces the terminal to run this in the background
+        run: dotnet run --project server/API/API.csproj &
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+
+      # 4. Playwright Browser Caching & OS Deps
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('tests/E2ETests/package-lock.json') }}
+
+      - name: Install Playwright Browsers
+        working-directory: ./tests/E2ETests
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps
+        
+      - name: Install Playwright OS Dependencies
+        working-directory: ./tests/E2ETests
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps
+
+      # 5. Run the Tests
+      - name: Run Playwright Tests
+        working-directory: ./tests/E2ETests
+        run: npx playwright test
+
+  deploy:
+    name: Deploy to Fly.io
+    needs: [test-backend, test-e2e]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+        
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl deploy --remote-only

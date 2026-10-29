@@ -1,0 +1,16 @@
+.home-page {
+  margin: 0 auto;
+}
+.category-nav {
+  display: flex;
+  justify-content: center;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 80%;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}

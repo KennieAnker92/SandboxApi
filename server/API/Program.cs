@@ -28,11 +28,17 @@ builder.Services.AddLinqToDBContext<AppDataConnection>((provider, options) =>
 
 // Register Service Layer
 builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<CategoryService>();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDataConnection>();
+    await DbInitializer.SeedAsync(db);
+}
     app.MapOpenApi();
 }
 
@@ -40,6 +46,10 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowFrontend");
 
 app.UseAuthorization();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapControllers();
 
 app.Run();

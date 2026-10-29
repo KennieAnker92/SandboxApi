@@ -1,8 +1,8 @@
-namespace API.Controllers;
-
+using Infrastructure.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Service;
-using Service.DTOs;
+
+namespace API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -16,23 +16,30 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<ActionResult<List<Product>>> GetAll([FromQuery] int? categoryId)
     {
+        if (categoryId.HasValue)
+        {
+            var filtered = await _productService.GetProductsByCategoryAsync(categoryId.Value);
+            return Ok(filtered);
+        }
         var products = await _productService.GetAllProductsAsync();
         return Ok(products);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Product>> GetById(int id)
     {
-        try
-        {
-            var product = await _productService.CreateProductAsync(request);
-            return CreatedAtAction(nameof(GetAll), new { id = product.Id }, product);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var product = await _productService.GetProductByIdAsync(id);
+        if (product == null) return NotFound();
+        
+        return Ok(product);
+    }
+
+   [HttpPost]
+    public async Task<ActionResult<Product>> Create([FromBody] Service.DTOs.CreateProductRequest request)
+    {
+        var created = await _productService.CreateProductAsync(request);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 }

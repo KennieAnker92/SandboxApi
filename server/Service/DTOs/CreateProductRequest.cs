@@ -1,3 +1,9 @@
 namespace Service.DTOs;
 
-public record CreateProductRequest(string Name, decimal Price);
+public class CreateProductRequest
+{
+    public string Name { get; set; } = null!;
+    public decimal Price { get; set; }
+    public string Description { get; set; } = null!;
+    public List<int> CategoryIds { get; set; } = [];
+}

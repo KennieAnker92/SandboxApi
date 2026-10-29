@@ -1,16 +1,24 @@
-namespace Infrastructure.Entities;
-
+using System.Collections.Generic;
 using LinqToDB.Mapping;
 
-[Table(Name = "Products")]
+namespace Infrastructure.Entities;
+
+[Table("Products")]
 public class Product
 {
     [PrimaryKey, Identity]
     public int Id { get; set; }
 
-    [Column(Name = "Name"), NotNull]
-    public string Name { get; set; } = string.Empty;
+    [Column, NotNull]
+    public string Name { get; set; } = null!;
 
-    [Column(Name = "Price"), NotNull]
+    [Column]
     public decimal Price { get; set; }
+
+    [Column]
+    public string Description { get; set; } = null!;
+
+    // Links to the join table
+    [Association(ThisKey = nameof(Id), OtherKey = nameof(ProductCategory.ProductId), CanBeNull = true)]
+    public List<ProductCategory> ProductCategories { get; set; } = [];
 }
