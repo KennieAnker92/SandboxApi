@@ -32,15 +32,23 @@ builder.Services.AddScoped<CategoryService>();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+
+using (var scope = app.Services.CreateScope())
 {
-    using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDataConnection>();
-    await DbInitializer.SeedAsync(db);
+    var services = scope.ServiceProvider;
+    try
+    {
+        var db = services.GetRequiredService<AppDataConnection>();
+        await DbInitializer.SeedAsync(db);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
 }
     app.MapOpenApi();
-}
+
 
 // For future Kennie. This must be placed before MapControllers and UseAuthorization
 app.UseCors("AllowFrontend");
