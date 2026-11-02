@@ -2,6 +2,7 @@ namespace Infrastructure.Data;
 
 using Infrastructure.Entities;
 using LinqToDB;
+using LinqToDB.Async;
 using LinqToDB.Data;
 
 public static class DbInitializer
@@ -14,7 +15,7 @@ public static class DbInitializer
         await db.CreateTableAsync<ProductCategory>(tableOptions: TableOptions.CreateIfNotExists);
 
         // 2. Check if data already exists to avoid duplicate seeding
-        if (db.Categories.Count() > 0)
+        if (await db.Categories.AnyAsync())
         {
             return;
         }
