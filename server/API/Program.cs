@@ -32,15 +32,14 @@ builder.Services.AddScoped<CategoryService>();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
+
     using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDataConnection>();
     await DbInitializer.SeedAsync(db);
 }
     app.MapOpenApi();
-}
+
 
 // For future Kennie. This must be placed before MapControllers and UseAuthorization
 app.UseCors("AllowFrontend");
