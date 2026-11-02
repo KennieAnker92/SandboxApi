@@ -1,12 +1,11 @@
-# fly.toml app configuration file generated for sandboxapi on 2026-11-02T06:59:12+01:00
+# fly.toml app configuration file generated for sandboxapi-red-pebble-6820 on 2026-11-02T07:20:39+01:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'sandboxapi'
-primary_region = 'ams'
+app = 'sandboxapi-red-pebble-6820'
+primary_region = 'arn'
 
-[build]
 [http_service]
   internal_port = 8080
   force_https = true
@@ -16,7 +15,11 @@ primary_region = 'ams'
   processes = ['app']
 
 [[vm]]
-  memory = '256mb'
+  memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 256
+  memory_mb = 1024
+
+[mounts]
+  source = "data_volume"
+  destination = "/app/data"

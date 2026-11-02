@@ -22,7 +22,6 @@ RUN dotnet restore server/API/API.csproj
 COPY server/ ./server/
 WORKDIR /src/server/API
 RUN dotnet publish -c Release -o /app/publish
-RUN mkdir -p /app/data && chown -R app:app /app/data
 
 # Stage 3: Final Runtime Image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
@@ -32,6 +31,10 @@ WORKDIR /app
 COPY --from=server-build /app/publish .
 # Copy the compiled React app into the .NET static files directory
 COPY --from=client-build /src/client/dist ./wwwroot
+
+USER root
+RUN mkdir -p /app/data && chown -R app:app /app/data
+USER app
 
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
