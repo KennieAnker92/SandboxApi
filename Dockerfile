@@ -22,6 +22,7 @@ RUN dotnet restore server/API/API.csproj
 COPY server/ ./server/
 WORKDIR /src/server/API
 RUN dotnet publish -c Release -o /app/publish
+RUN mkdir -p /app/data && chown -R app:app /app/data
 
 # Stage 3: Final Runtime Image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
