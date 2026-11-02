@@ -66,23 +66,10 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Development
 
-      # 4. Playwright Browser Caching & OS Deps
-      - name: Cache Playwright Browsers
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('tests/E2ETests/package-lock.json') }}
-
-      - name: Install Playwright Browsers
+      # 4. Install Playwright & OS Dependencies
+      - name: Install Playwright Browsers and OS Dependencies
         working-directory: ./tests/E2ETests
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps
-        
-      - name: Install Playwright OS Dependencies
-        working-directory: ./tests/E2ETests
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps
 
       # 5. Run the Tests
       - name: Run Playwright Tests
